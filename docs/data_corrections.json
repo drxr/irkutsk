@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-07",
+  "authority": "Подтверждение пользователя в чате: «там 80546»",
+  "cell": {
+    "form_number": "10",
+    "year": "2017",
+    "table_code": "2000",
+    "row_number": "1",
+    "column_number": "4"
+  },
+  "source_file": "2017-форма 10.PDF",
+  "source_page": "2",
+  "changes": [
+    {
+      "file": "form_10_all_years_long.csv",
+      "rows": 9533,
+      "changed_rows": 1,
+      "changed_fields": {
+        "value_num": {
+          "before": "",
+          "after": "80546"
+        },
+        "value_status": {
+          "before": "text",
+          "after": "numeric"
+        },
+        "quality_flag": {
+          "before": "ocr_review",
+          "after": "visually_checked"
+        },
+        "row_number_inferred": {
+          "before": "True",
+          "after": "False"
+        },
+        "source_annotation": {
+          "before": "",
+          "after": "2026-10-07: пользователь подтвердил 80546 для формы 10, таблицы 2000, строки 1, графы 4 за 2017 год. Исходный PDF нами повторно не сверялся; исходные результаты OCR сохранены."
+        }
+      }
+    },
+    {
+      "file": "psychiatry_all_long.csv",
+      "rows": 14795,
+      "changed_rows": 1,
+      "changed_fields": {
+        "value_num": {
+          "before": "",
+          "after": "80546"
+        },
+        "value_status": {
+          "before": "text",
+          "after": "numeric"
+        },
+        "quality_flag": {
+          "before": "ocr_review",
+          "after": "visually_checked"
+        },
+        "row_number_inferred": {
+          "before": "True",
+          "after": "False"
+        },
+        "source_annotation": {
+          "before": "",
+          "after": "2026-10-07: пользователь подтвердил 80546 для формы 10, таблицы 2000, строки 1, графы 4 за 2017 год. Исходный PDF нами повторно не сверялся; исходные результаты OCR сохранены."
+        }
+      }
+    }
+  ]
+}

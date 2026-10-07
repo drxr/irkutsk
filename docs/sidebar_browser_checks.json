@@ -1,0 +1,51 @@
+{
+  "desktop": {
+    "sidebar_order": [
+      {
+        "label": "Отчетный год",
+        "index": 159
+      },
+      {
+        "label": "Качество для расчётов",
+        "index": 173
+      },
+      {
+        "label": "Период графиков",
+        "index": 196
+      },
+      {
+        "label": "Порог годового изменения",
+        "index": 237
+      },
+      {
+        "label": "Загрузка данных",
+        "index": 377
+      },
+      {
+        "label": "С уважением,",
+        "index": 394
+      },
+      {
+        "label": "команда Волны",
+        "index": 407
+      }
+    ],
+    "logo_loaded": true,
+    "exceptions": 0
+  },
+  "csv_upload": {
+    "two_files": true,
+    "uploaded_year": 2017,
+    "registered": 80546,
+    "exceptions": 0
+  },
+  "mobile": {
+    "viewport": [
+      390,
+      844
+    ],
+    "footer_reachable": true,
+    "horizontal_overflow": false,
+    "exceptions": 0
+  }
+}

@@ -1,0 +1,57 @@
+[
+  {
+    "title": "WHO · Mental Health Atlas 2024 (опубликован 02.09.2025)",
+    "url": "https://www.who.int/publications/i/item/9789240114487",
+    "application": "Показатели службы, кадров, общественных форм помощи и мониторинга данных. Основа набора управленческих направлений, а не нормативы для Иркутской области."
+  },
+  {
+    "title": "WHO · Mental health policy and strategic action plans, Module 3 (2025)",
+    "url": "https://www.who.int/publications/i/item/9789240106833",
+    "application": "Восстановление, равный доступ, социальные условия, участие людей с опытом получения помощи. Поэтому показаны реабилитация и занятость, а не только стационар."
+  },
+  {
+    "title": "WHO · World Mental Health Report (2022)",
+    "url": "https://www.who.int/teams/mental-health-and-substance-use/world-mental-health-report",
+    "application": "Развитие сети общественных служб: сопоставляем стационар, амбулаторную и дневную помощь; не принимаем больше госпитализаций за лучший результат."
+  },
+  {
+    "title": "OECD · Care for people with mental health disorders, Health at a Glance 2025",
+    "url": "https://www.oecd.org/en/publications/health-at-a-glance-2025_8f9e3f98-en/full-report/care-for-people-with-mental-health-disorders_93180f8c.html",
+    "application": "Безопасность, непрерывность помощи после выписки, опыт пациента. В текущих данных нет связанных записей смертности после выписки и PREMs; их нельзя имитировать таблицей 2150."
+  },
+  {
+    "title": "Bischof et al. · Design components for clinical dashboards incorporating PROMs (JMIR, 2024)",
+    "url": "https://www.jmir.org/2024/1/e55267/",
+    "application": "Ориентация на задачи пользователей и понятность представления. Перенос на региональные агрегаты: главное → детали → источник, без подмены отсутствующих PROMs учетными числами."
+  },
+  {
+    "title": "Almasi et al. · Umbrella review of healthcare dashboards (Digital Health, 2026)",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/41788668/",
+    "application": "Обзор применений, дизайна и барьеров. Проект учитывает качество и совместимость данных, понятные действия после сигнала и проверку реальных сценариев интерфейса."
+  },
+  {
+    "title": "W3C · WCAG 2.2",
+    "url": "https://www.w3.org/WAI/WCAG22/quickref/",
+    "application": "Контрастный текст, сигналы с текстовым объяснением, а не только цветом; числовые таблицы доступны рядом с графиками. Полный аудит доступности не проводился."
+  },
+  {
+    "title": "WHO · Mental Health and COVID-19: Scientific brief (02.03.2022)",
+    "url": "https://www.who.int/publications/i/item/WHO-2019-nCoV-Sci_Brief-Mental_health-2022.1",
+    "application": "Контекст пандемии для здоровья и работы служб. Глобальные выводы не доказывают причины изменений регионального учета."
+  },
+  {
+    "title": "Губернатор Иркутской области · указ №70-уг, 31.03.2020",
+    "url": "https://irkobl.ru/sites/agroline/70-%D1%83%D0%B3.pdf",
+    "application": "Начало самоизоляции 31.03.2020 с 20:00, первоначально до 05.04.2020. Проверено по поисковой выдаче официального портала; прямое открытие PDF недоступно."
+  },
+  {
+    "title": "Указ №59-уг · сводная редакция на 12.05.2020 (официальный ресурс прокуратуры)",
+    "url": "https://epp.genproc.gov.ru/upload/iblock/f29/4j0m7fritma6oox9yzlx7vyzlvtr5yd8.pdf",
+    "application": "Пункт 3, страница 2: режим с 05.04 по 31.05.2020. Это документированное продление, а не окончательная дата завершения всех ограничений."
+  },
+  {
+    "title": "ООН · Two-year update since 24 February 2022",
+    "url": "https://ukraine.un.org/en/261245-two-year-update-protection-civilians-impact-hostilities-civilians-24-february-2022",
+    "application": "Источник даты начала события 24.02.2022. В годовой отчетности 2022 считается смешанным годом; сравнение полных последующих лет начинается с 2023-го."
+  }
+]

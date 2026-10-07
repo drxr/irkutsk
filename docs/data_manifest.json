@@ -1,0 +1,16 @@
+{
+  "form_10_rows": 9533,
+  "form_36_rows": 5262,
+  "sources": 23,
+  "default_policy": "Только цифровые и сверенные",
+  "input_sha256": {
+    "form_10_all_years_long.csv": "05bbc91699d3f4e0241996d0e4b30c2e13b8ef6704f56811296757d6d0342f47",
+    "form_36_all_years_long.csv": "554408c2ae1d5a33e25c72047155130d47e21b6ac72db47a5cf0e8c4301aaadc"
+  },
+  "metrics_count": 26,
+  "note": "Одна ячейка формы 10 за 2017 год исправлена по подтверждению пользователя: 80546. Детали в data_corrections.json. Последняя годовая отчетность — 2024.",
+  "original_input_sha256": {
+    "form_10_all_years_long.csv": "fec0b9babf96959c892dbfb9df906035ae9261b241248825fe1673fef280a832",
+    "form_36_all_years_long.csv": "554408c2ae1d5a33e25c72047155130d47e21b6ac72db47a5cf0e8c4301aaadc"
+  }
+}
