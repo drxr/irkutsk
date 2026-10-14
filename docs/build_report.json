@@ -1,0 +1,22 @@
+{
+  "medical_rows": 15279,
+  "medical_sources": 24,
+  "population_denominator_rows": 2056,
+  "partial": false,
+  "errors": [],
+  "medical_processing_modes": {
+    "hash_verified_cache": 24,
+    "skipped": 2
+  },
+  "forecasts": {
+    "2000": {
+      "status": "blocked",
+      "reason": "Непрерывный хвост — 5 лет; нужно минимум 8"
+    },
+    "3000": {
+      "status": "blocked",
+      "reason": "Непрерывный хвост — 5 лет; нужно минимум 8"
+    }
+  },
+  "pdf_status": "not_fully_manually_verified"
+}

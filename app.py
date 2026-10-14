@@ -11,6 +11,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from indicators import load_population
+from customer_pages import (comparison_page, forecast_page, incidence_page,
+    observation_page, overview_rates, population_page, resource_additions)
+
 from analytics import (
     CATALOG, DEFAULT_POLICY, METRICS, POLICIES, build_series, capacity_scenario,
     cell_value, detect_anomalies, diagnostic_rows, diagnosis_history, load_frames, per_100k, period_comparison,
@@ -20,8 +24,9 @@ from analytics import (
 
 ROOT = Path(__file__).resolve().parent
 TEAL, CORAL, NAVY, PURPLE = "#087F83", "#C84A40", "#152D3D", "#6750A4"
-SECTIONS = ["Обзор", "Динамика и события", "Структура пациентов",
-            "Нагрузка и ресурсы", "Аномалии и качество", "Данные и методика"]
+SECTIONS = ["Обзор", "Заболеваемость и структура", "Наблюдение и помощь",
+            "Нагрузка и ресурсы", "Динамика и события", "Прогноз",
+            "Население и покрытия", "Сравнения и запросы", "Аномалии и качество", "Данные и методика"]
 
 st.set_page_config(page_title="Волна данных · Психиатрия", page_icon="◉", layout="wide")
 
@@ -266,7 +271,7 @@ def events_page(data, series_map, year, selected_years):
     c1.metric("Среднее до", fmt(row.before, 1), help=f"Фактически использованы годы: {row.years_before or 'нет'}")
     c2.metric("Среднее после", fmt(row.after, 1), help=f"Фактически использованы годы: {row.years_after or 'нет'}")
     c3.metric("Описательная разница", f"{fmt(row.change_pct, 1)}%" if np.isfinite(row.change_pct) else "—", help="Сравнение средних без причинной интерпретации и без проверки статистической значимости.")
-    st.info(f"Использовано {row.n_before} точек до и {row.n_after} после. База 2019–2021 пересекается с COVID; проверь результат также на базе 2013–2019. Для формы 36 отсутствует 2022 год. Участники СВО в данных не выделены.")
+    st.info(f"Использовано {row.n_before} точек до и {row.n_after} после. База 2019–2021 пересекается с COVID; проверь результат также на базе 2013–2019. Форма 36 за 2022 год добавлена из отчёта пользователя. Участники СВО в данных не выделены.")
     columns = {"indicator": "Показатель", "before": "Среднее до", "after": "Среднее после", "change_pct": "Разница, %", "n_before": "Точек до", "n_after": "Точек после", "years_before": "Годы до", "years_after": "Годы после", "unit": "Единица"}
     full_width(st.dataframe, comparison[list(columns)].rename(columns=columns), hide_index=True)
     st.download_button("Скачать сравнение периодов", csv_bytes(comparison), "event_comparison.csv", "text/csv")
@@ -425,10 +430,10 @@ def methodology_page(data, series_map, policy):
         st.download_button("Скачать словарь показателей", csv_bytes(pd.DataFrame(dictionary)), "metric_dictionary.csv", "text/csv")
     with st.expander("Чего не хватает для следующих решений"):
         st.markdown("""
-        - Среднегодовая численность населения и возрастные знаменатели — для корректного сравнения на 100 тыс.
+        - Возрастные среднегодовые знаменатели за 2022–2024: общий ряд населения уже подключён, расчётные значения отмечены.
         - Муниципалитеты, место обращения, очередь и время ожидания — для оценки территориальной доступности.
         - Штатные вакансии, физические лица и среднегодовые FTE — для кадрового планирования.
-        - Форма 36 за 2022 год, месячная динамика и контрольные регионы — для более сильного анализа временных изменений.
+        - Месячная динамика и контрольные регионы — для более сильного анализа временных изменений.
         - Связанные эпизоды лечения и 30-дневные повторные госпитализации — для непрерывности помощи.
         - PROMs/PREMs, функциональные исходы и доступность реабилитации — для оценки результата для пациента.
         - Независимая статистика причин смерти — для суицидальной смертности всего населения.
@@ -450,75 +455,97 @@ def methodology_page(data, series_map, policy):
     st.caption(f"Текущий режим качества: {policy}. При смене режима расчёты и экспорты пересчитываются.")
 
 
+
 def main():
+    """Загрузить оба набора и связать экраны с едиными правилами расчёта."""
     style()
     with st.sidebar:
         st.markdown(f'<div class="brand"><img src="{logo_data_uri()}" alt="Волна"><small>ПСИХИАТРИЧЕСКАЯ СЛУЖБА</small></div>', unsafe_allow_html=True)
         section = st.radio("Раздел", SECTIONS, key="section", label_visibility="collapsed")
         st.divider()
-        # Место фильтров создаём раньше загрузки, а заполняем после чтения CSV.
-        # Так фильтры учитывают новые данные и остаются выше загрузки в меню.
         controls = st.container()
         st.divider()
         with st.expander("Загрузка данных", expanded=False):
-            uploads = st.file_uploader("Обновить сводные CSV", type=["csv"], accept_multiple_files=True, key="summary_csv_uploads", help="Загруженные файлы полностью заменяют комплект примера. Выбери форму 10 и форму 36.")
+            uploads = st.file_uploader("Обновить медицинские CSV", type=["csv"], accept_multiple_files=True,
+                key="summary_csv_uploads", help="Загруженные файлы заменяют медицинский комплект. Используй общий CSV или две формы без дублирования.")
+            pop_upload = st.file_uploader("Обновить знаменатели населения", type=["csv"], key="population_v2_upload",
+                help="Полная таблица population_denominators_2013_2024.csv из нового парсера.")
         st.markdown('<div class="sidebar-signature">С уважением,<br><strong>команда Волны</strong></div>', unsafe_allow_html=True)
     try:
-        content = tuple(file.getvalue() for file in uploads) if uploads else tuple((ROOT / "data" / f"form_{number}_all_years_long.csv").read_bytes() for number in [10, 36])
+        content = tuple(file.getvalue() for file in uploads) if uploads else tuple(
+            (ROOT / "data/medical" / f"form_{number}_all_years_long.csv").read_bytes() for number in [10, 36])
         data = prepared_data(content)
+        population = load_population(pop_upload.getvalue() if pop_upload else ROOT / "data/population/population_denominators_2013_2024.csv")
+        regions = set(data.region.str.strip()) - {""}
+        if regions != {"Иркутская область"}:
+            raise ValueError("Эта версия использует население Иркутской области. Медицинские данные должны относиться к той же территории.")
     except (ValueError, OSError, pd.errors.ParserError) as error:
         st.error(f"Не удалось прочитать данные: {error}")
         st.stop()
-    regions = [r for r in data.region.unique() if r]
-    region = regions[0] if regions else "Регион не указан"
     with controls:
-        year = st.selectbox("Отчетный год", sorted(data.year.unique()), index=len(data.year.unique()) - 1, key="year")
-        policy = st.selectbox("Качество для расчётов", list(POLICIES), key="quality_policy", help="По умолчанию OCR исключен. Разрешение OCR не подтверждает правильность распознавания.")
+        years = sorted(data.year.unique())
+        year = st.selectbox("Отчетный год", years, index=len(years) - 1, key="year")
+        policy = st.selectbox("Качество для расчётов", list(POLICIES), key="quality_policy",
+            help="По умолчанию непроверенный OCR исключён.")
         minimum, maximum = int(data.year.min()), int(data.year.max())
         selected_years = st.slider("Период графиков", minimum, maximum, (minimum, maximum), key="history") if minimum < maximum else (minimum, maximum)
-        threshold = st.slider("Порог годового изменения, %", 5, 50, 15, step=5, help="Порог сигнала внимания, не норматив здравоохранения.")
-        st.caption(f"{region}\n\nГодовые формы 10 и 36. Последний отчет в комплекте: {maximum}.")
+        calculated = st.checkbox("Использовать расчётное среднегодовое население", value=False, key="allow_calculated_population",
+            help="Среднее двух январских срезов. Нужна проверка допустимости метода для показателя. Возрастные пропуски этим не заполняются.")
+        threshold = st.slider("Порог годового изменения, %", 5, 50, 15, step=5, key="alert_threshold")
+        st.caption("Иркутская область · годовая отчётность · формы 10 и 36")
     series_map = prepared_series(data, policy)
     alerts = detect_anomalies(series_map, threshold)
-    st.markdown('<div class="eyebrow">РЕГИОНАЛЬНАЯ СИСТЕМА ПОДДЕРЖКИ РЕШЕНИЙ</div>', unsafe_allow_html=True)
-    st.title({"Обзор": "Психиатрическая служба: главное", "Динамика и события": "Динамика в контексте событий", "Структура пациентов": "Структура пациентов", "Нагрузка и ресурсы": "Ресурсы и пути помощи", "Аномалии и качество": "Сигналы и доверие к данным", "Данные и методика": "От показателя — к источнику"}[section])
-    st.markdown(f'<span class="chip">{escape(region)}</span><span class="chip">{year} год</span><span class="chip">{escape(policy)}</span>', unsafe_allow_html=True)
-    if "Иркут" not in region:
-        st.warning("В загруженных CSV указан другой регион или регион не указан. Заголовок данных обновлен; события в разделе контекста относятся к Иркутской области.")
+    ui = {'fmt': fmt, 'wide': full_width, 'line': line_chart, 'csv': csv_bytes}
+    titles = {"Обзор": "Психиатрическая служба: главное",
+        "Заболеваемость и структура": "Заболеваемость и состав пациентов",
+        "Наблюдение и помощь": "Наблюдение, движение и помощь",
+        "Нагрузка и ресурсы": "Ресурсы и пути помощи",
+        "Динамика и события": "Динамика в контексте событий",
+        "Прогноз": "Прогноз с проверкой на прошлых годах",
+        "Население и покрытия": "Население и сопоставимость знаменателей",
+        "Сравнения и запросы": "Территории и запросы заказчика",
+        "Аномалии и качество": "Сигналы и доверие к данным",
+        "Данные и методика": "От показателя — к источнику"}
+    st.markdown('<div class="eyebrow">РЕГИОНАЛЬНАЯ СИСТЕМА ПОДДЕРЖКИ РЕШЕНИЙ · НОВЫЙ БРИФ</div>', unsafe_allow_html=True)
+    st.title(titles[section])
+    st.markdown(f'<span class="chip">Иркутская область</span><span class="chip">{year} год</span><span class="chip">{escape(policy)}</span>', unsafe_allow_html=True)
     if policy != DEFAULT_POLICY:
-        st.warning("Исследовательский режим: разрешено использование OCR. Проверь исходники перед управленческими решениями.")
-    if not ((data.year == year) & (data.form_number == "36")).any():
-        st.info(f"Форма 36 за {year} год отсутствует. Показатели службы за этот год оставлены без значения.")
+        st.warning("Исследовательский режим: разрешено использование OCR. Требуется сверка исходников.")
+    if calculated:
+        st.caption("Расчётные среднегодовые знаменатели включены. Метод сохранён в экспортах.")
     if section == "Обзор":
+        overview_rates(data, population, year, policy, calculated, ui)
         overview(data, series_map, alerts, year, policy, selected_years)
-    elif section == "Динамика и события":
-        events_page(data, series_map, year, selected_years)
-    elif section == "Структура пациентов":
-        structure_page(data, year, policy)
+    elif section == "Заболеваемость и структура":
+        incidence_page(data, population, year, policy, selected_years, calculated, ui)
+    elif section == "Наблюдение и помощь":
+        observation_page(data, population, series_map, year, policy, selected_years, calculated, ui)
     elif section == "Нагрузка и ресурсы":
         resources_page(series_map, year)
+        resource_additions(series_map, population, year, selected_years, calculated, ui)
+    elif section == "Динамика и события":
+        events_page(data, series_map, year, selected_years)
+    elif section == "Прогноз":
+        forecast_page(data, population, policy, selected_years, calculated, ui)
+    elif section == "Население и покрытия":
+        population_page(population, ROOT, year, ui)
+    elif section == "Сравнения и запросы":
+        comparison_page(ROOT, year, ui)
     elif section == "Аномалии и качество":
         quality_page(data, series_map, alerts, year, policy)
+        with st.expander("Реестр проверки PDF-таблиц"):
+            inventory = pd.read_csv(ROOT / "data/medical/table_inventory_v2.csv", dtype=str, keep_default_na=False)
+            pdf = inventory.loc[inventory.verification_status.eq("pdf_review_required")]
+            full_width(st.dataframe, pdf, hide_index=True)
+            st.download_button("Скачать реестр PDF", csv_bytes(pdf), "pdf_review_register.csv", "text/csv")
+            st.caption("Этот реестр показывает извлечённые таблицы. Полноту нужно подтвердить по всем страницам исходников.")
     else:
         methodology_page(data, series_map, policy)
-    # Нормирование включается только при появлении соответствующего знаменателя.
-    if section == "Динамика и события":
-        with st.expander("Нормировать учетные показатели на 100 тыс. жителей"):
-            st.caption("Для численности населения нужна среднегодовая оценка той же территории. Это показатели зарегистрированного учета, а не оценка истинной распространенности.")
-            template = pd.DataFrame({"year": years_of(data), "population_total": [""] * len(years_of(data))})
-            st.download_button("Скачать шаблон населения", csv_bytes(template), "population_template.csv", "text/csv")
-            population = st.file_uploader("CSV с year и population_total", type=["csv"], key="population")
-            if population:
-                try:
-                    denominator = population_frame(population.getvalue())
-                    key = st.selectbox("Показатель на 100 тыс.", ["registered", "new"], format_func=lambda k: CATALOG[k]["label"], key="rate_metric")
-                    normalized = per_100k(series_map[key], denominator)
-                    full_width(st.plotly_chart, line_chart(normalized))
-                    st.download_button("Скачать нормированный ряд", csv_bytes(normalized), "rates_per_100k.csv", "text/csv")
-                except (ValueError, pd.errors.ParserError) as error:
-                    st.error(str(error))
+        st.subheader("Методы знаменателей")
+        st.write("Годовые зарегистрированные и впервые выявленные — среднегодовое население. Контингенты на конец года — численность на 1 января следующего года. Для детей, подростков, пола и типа поселения выбирается соответствующая группа.")
+        st.caption("Это правила прототипа, которые нужно подтвердить с заказчиком по определениям показателей. Областные данные не заменяют муниципальные.")
     st.divider()
-    st.markdown('<div class="footnote">Управленческий мониторинг · Годовая отчетность · Никакой интерполяции отсутствующих отчетов · Каждое число можно сверить с источником</div>', unsafe_allow_html=True)
+    st.markdown('<div class="footnote">Управленческий мониторинг · Каждое число можно сверить с источником · Пропуски сохраняются · Цели брифа 70%/80% требуют измерения после внедрения</div>', unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
