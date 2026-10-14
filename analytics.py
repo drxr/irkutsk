@@ -121,6 +121,21 @@ METRICS = {
                            action="Уточнить состав потока экспертиз и правила учета.", priority=4),
 }
 
+METRICS.update({
+    'disp_taken': dict(label='Взято под диспансерное наблюдение', unit='чел. за год',
+        slot=('36', '2100', '1', '4', '4', 'взято'), note='Поступление в контингент за год, не численность на конец года.',
+        action='Сверить поступления, переводы и полноту регистрации.', priority=3),
+    'disp_removed': dict(label='Снято с диспансерного наблюдения', unit='чел. за год',
+        slot=('36', '2100', '1', '8', '9', 'снято'), note='Снятия за год; причины требуют отдельного анализа.',
+        action='Проверить причины снятия и переводов.', priority=3),
+    'consult_started': dict(label='Впервые обратились за консультативной помощью в году', unit='чел. за год',
+        slot=('36', '2110', '1', '4', '4', 'обрат'), note='Первое обращение в году не тождественно первому диагнозу в жизни.',
+        action='Проверить маршруты первого обращения.', priority=3),
+    'consult_stopped': dict(label='Прекратили обращения за консультативной помощью', unit='чел. за год',
+        slot=('36', '2110', '1', '8', '9', 'прекра'), note='Прекращение обращений по форме; причина не установлена одним числом.',
+        action='Сверить причины прекращения и непрерывность помощи.', priority=3),
+})
+
 DERIVED = {
     "visits_per_position": dict(label="Посещений на занятую должность · взрослые", unit="посещений / должность",
                                 dependencies=["adult_visits", "adult_positions"], operation="ratio", scale=1,
@@ -222,11 +237,11 @@ def metric_series(data, metric_id, policy=DEFAULT_POLICY):
         records = []
         for year in years_of(data):
             column = new_col if year >= 2023 else old_col
-            # В короткой таблице 2120 нумерация в Excel 2020/2023 начинается
+            # В короткой таблице 2120 нумерация в Excel 2020/2022/2023 начинается
             # с графы 3, в Word — с графы 1. Проверено по названиям CSV.
-            if table == "2120" and year in {2020, 2023}:
+            if table == "2120" and year in {2020, 2022, 2023}:
                 column = {"working_age": "4", "working_age_employed": "6"}.get(metric_id, column)
-            if table == "2150" and year in {2020, 2023}:
+            if table == "2150" and year in {2020, 2022, 2023}:
                 column = str(int(column) + 2)
             records.append(cell_value(data, year, form, table, row, column, policy, pattern))
         result = pd.DataFrame(records)

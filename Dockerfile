@@ -2,7 +2,8 @@ FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY app.py analytics.py ./
+COPY app.py analytics.py indicators.py customer_pages.py update_data.py ./
+COPY assets ./assets
 COPY data ./data
 COPY docs ./docs
 COPY .streamlit ./.streamlit
