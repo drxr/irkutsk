@@ -473,7 +473,7 @@ def main():
         st.markdown('<div class="sidebar-signature">С уважением,<br><strong>команда Волны</strong></div>', unsafe_allow_html=True)
     try:
         content = tuple(file.getvalue() for file in uploads) if uploads else tuple(
-            (ROOT / "data/medical" / f"form_{number}_all_years_long.csv").read_bytes() for number in [10, 36])
+            (ROOT / "data/" / f"form_{number}_all_years_long.csv").read_bytes() for number in [10, 36])
         data = prepared_data(content)
         population = load_population(pop_upload.getvalue() if pop_upload else ROOT / "data/population/population_denominators_2013_2024.csv")
         regions = set(data.region.str.strip()) - {""}
