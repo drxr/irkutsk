@@ -1,0 +1,9 @@
+﻿source_file,source_sha256,rows,year_min,year_max,sheets,population_types,sexes,residences
+post_nas_2025(1).xlsx,71e454d746dc91b4c346eaa0f9ebdebb7208b5d1f772a2b49d91069b6f9ee402,1605,2011,2025,1,beginning_year,both,"all,rural,urban"
+post_nasel_obl_2025(1).xlsx,4ca3e8e802d6446e82a7c12eadedb4b49bdbf26778bdd4f15f4fd1f59bc46130,69,1995,2025,1,beginning_year,both,"all,urban,rural"
+Иркутская область_2000_2011_с учетом итогов Всероссийской переписи населения 2010 года(1).xlsx,1310ce26993c7c9694d4a19057897cde677ac931cf793de9cdfd8807d8232860,4644,2000,2011,1,beginning_year,"both,male,female",all
+Иркутская область_2012_2021_с учетом итогов Всероссийской переписи населения 2020 года(1).xlsx,7ec215321d1d523b8c4e9d5933fc322282771fac15c047cef861daa82acaa4ce,10098,2012,2022,11,beginning_year,"both,male,female","all,urban,rural"
+Среднегодовая численность населения по ИО по полу и возрасту за 2011-2021 (пересчет от итогов ВПН 2020 г)(1).xlsx,5336da77e3de780d9ae146c230af0e2f2bb062d5dde32f6b0e4ea0ad21906fff,1122,2011,2021,1,annual_average,both,all
+Среднегодовая численность населения по городским округам и муниципальным районам (с 2011 г.)(1).xlsx,02afb3df1cfa8b71dcb9cc0bd720f0c3c4fbdd533e24a467faa4201189bdcb68,770,2011,2024,1,annual_average,both,"all,rural"
+Численность мужчин и женщин_2025(1).xls,43364c0db638571f4fe32f991ec7d3ef51f1cd0ef69bbd41374f97e74f679525,69,1995,2025,1,beginning_year,"both,male,female",all
+Численность населения по полу и возрасту на начало года по городам с населением  100 тыс.человек и более(1).xlsx,54365aebd3445a8faa81bc2c882ceb0c4163b6227f35ccbfb07d082fd9e44399,16253,2011,2024,3,beginning_year,"both,male,female",all

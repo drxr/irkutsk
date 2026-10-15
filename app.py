@@ -11,7 +11,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from data_access import data_root, empty_population, medical_inputs, optional_csv
+from data_access import empty_population, medical_inputs, optional_csv, population_input
 from design_tokens import REGION, FORECAST, STATUS
 from story_view import narrative_overview
 
@@ -490,8 +490,8 @@ def main():
             st.stop()
         content = tuple(file.getvalue() for file in uploads) if uploads else tuple(path.read_bytes() for path in paths)
         data = prepared_data(content)
-        population_path = data_root(ROOT) / 'population/population_denominators_2013_2024.csv'
-        population = load_population(pop_upload.getvalue() if pop_upload else population_path) if pop_upload or population_path.is_file() else empty_population()
+        population_path = population_input(ROOT)
+        population = load_population(pop_upload.getvalue() if pop_upload else population_path) if pop_upload or population_path else empty_population()
         regions = set(data.region.str.strip()) - {""}
         if regions != {"Иркутская область"}:
             raise ValueError("Эта версия использует население Иркутской области. Медицинские данные должны относиться к той же территории.")
@@ -509,6 +509,8 @@ def main():
             help="Среднее двух январских срезов. Нужна проверка допустимости метода для показателя. Возрастные пропуски этим не заполняются.")
         threshold = st.slider("Порог годового изменения, %", 5, 50, 15, step=5, key="alert_threshold")
         st.caption("Иркутская область · годовая отчётность · формы 10 и 36")
+        if not population.empty:
+            st.caption(f"Население подключено: {int(population.year.min())}–{int(population.year.max())} · {len(population):,} знаменателей".replace(',', ' '))
     series_map = prepared_series(data, policy)
     alerts = detect_anomalies(series_map, threshold)
     ui = {'fmt': fmt, 'wide': full_width, 'line': line_chart, 'csv': csv_bytes}

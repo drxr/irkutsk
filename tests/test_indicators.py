@@ -7,7 +7,7 @@ import pytest
 from analytics import DEFAULT_POLICY, POLICIES, build_series, load_frames, point
 from indicators import (forecast_series, form10_count, incidence_series,
                         load_population, normalize_series)
-from data_access import data_root, medical_inputs
+from data_access import medical_inputs, population_input
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -19,8 +19,8 @@ def data():
 
 @pytest.fixture(scope='module')
 def population():
-    path = data_root(ROOT) / 'population/population_denominators_2013_2024.csv'
-    if not path.is_file():
+    path = population_input(ROOT)
+    if path is None:
         pytest.skip('Возрастные знаменатели не входят в текущий комплект репозитория')
     return load_population(path)
 
