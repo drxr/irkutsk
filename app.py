@@ -11,9 +11,13 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from data_access import data_root, empty_population, medical_inputs, optional_csv
+from design_tokens import REGION, FORECAST, STATUS
+from story_view import narrative_overview
+
 from indicators import load_population
 from customer_pages import (comparison_page, forecast_page, incidence_page,
-    observation_page, overview_rates, population_page, resource_additions)
+    observation_page, population_page, resource_additions)
 
 from analytics import (
     CATALOG, DEFAULT_POLICY, METRICS, POLICIES, build_series, capacity_scenario,
@@ -23,7 +27,7 @@ from analytics import (
 
 
 ROOT = Path(__file__).resolve().parent
-TEAL, CORAL, NAVY, PURPLE = "#087F83", "#C84A40", "#152D3D", "#6750A4"
+TEAL, CORAL, NAVY, PURPLE = REGION, STATUS['negative'], "#152D3D", FORECAST
 SECTIONS = ["Обзор", "Заболеваемость и структура", "Наблюдение и помощь",
             "Нагрузка и ресурсы", "Динамика и события", "Прогноз",
             "Население и покрытия", "Сравнения и запросы", "Аномалии и качество", "Данные и методика"]
@@ -80,6 +84,12 @@ def style():
     .timeline p{font-size:13px;line-height:1.6;color:#536977;}
     .footnote{font-size:12px;line-height:1.6;color:#536977;}
     .stButton button,.stDownloadButton button{border-radius:12px;}
+    .st-key-primary_kpis [data-testid="stMetric"]{border-top:4px solid #087F83;padding:24px;}
+    .st-key-primary_kpis [data-testid="stMetricValue"]{font-size:3rem;font-weight:750;}
+    .insight{background:#FFFFFF;border:1px solid #E2E8EC;border-left:4px solid #536977;border-radius:14px;padding:16px 20px;margin:10px 0 18px;}
+    .insight strong{font-size:16px;line-height:1.45;color:#152D3D;}
+    .insight p{font-size:14px;line-height:1.65;color:#536977;margin:8px 0 0;}
+    [data-testid="stPlotlyChart"]{border-radius:16px;overflow:hidden;}
     @media(max-width:800px){.block-container{padding:1rem;}h1{font-size:1.9rem!important;}.hero{padding:22px;}}
     </style>""", unsafe_allow_html=True)
 
@@ -119,7 +129,7 @@ def line_chart(series, color=TEAL, height=330, events=True):
     hover = np.column_stack([series.year, series.quality_flag, series.reason])
     plot.add_trace(go.Scatter(
         x=dates, y=series.value, mode="lines+markers", connectgaps=False,
-        line=dict(color=color, width=3), marker=dict(size=8, color=color),
+        line=dict(color=REGION, width=3), marker=dict(size=8, color=REGION),
         customdata=hover,
         hovertemplate="%{customdata[0]} год<br>%{y:,.2f}<br>Качество: %{customdata[1]}<br>%{customdata[2]}<extra></extra>",
         name=series.label.iloc[0],
@@ -128,7 +138,7 @@ def line_chart(series, color=TEAL, height=330, events=True):
     if ocr.any():
         plot.add_trace(go.Scatter(x=[dates[i] for i in range(len(dates)) if ocr.iloc[i]],
                                   y=series.loc[ocr, "value"], mode="markers",
-                                  marker=dict(symbol="diamond-open", size=13, color=CORAL, line=dict(width=2)),
+                                  marker=dict(symbol="diamond-open", size=13, color=STATUS['attention'], line=dict(width=2)),
                                   name="OCR: требует сверки", hoverinfo="skip"))
     if events:
         minimum, maximum = int(series.year.min()), int(series.year.max())
@@ -150,7 +160,7 @@ def line_chart(series, color=TEAL, height=330, events=True):
 
 def bar_chart(labels, values, color=TEAL, height=320):
     plot = go.Figure(go.Bar(x=values, y=labels, orientation="h",
-                           marker_color=color, text=[fmt(v) for v in values], textposition="auto",
+                           marker_color=REGION, text=[fmt(v) for v in values], textposition="auto",
                            hovertemplate="%{y}<br>%{x:,.0f}<extra></extra>"))
     plot.update_layout(height=height, margin=dict(t=10, b=20, l=10, r=15),
                        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
@@ -271,7 +281,9 @@ def events_page(data, series_map, year, selected_years):
     c1.metric("Среднее до", fmt(row.before, 1), help=f"Фактически использованы годы: {row.years_before or 'нет'}")
     c2.metric("Среднее после", fmt(row.after, 1), help=f"Фактически использованы годы: {row.years_after or 'нет'}")
     c3.metric("Описательная разница", f"{fmt(row.change_pct, 1)}%" if np.isfinite(row.change_pct) else "—", help="Сравнение средних без причинной интерпретации и без проверки статистической значимости.")
-    st.info(f"Использовано {row.n_before} точек до и {row.n_after} после. База 2019–2021 пересекается с COVID; проверь результат также на базе 2013–2019. Форма 36 за 2022 год добавлена из отчёта пользователя. Участники СВО в данных не выделены.")
+    form36_2022 = ((data.form_number == '36') & (data.year == 2022)).any()
+    coverage_note = 'Форма 36 за 2022 год подключена.' if form36_2022 else 'Форма 36 за 2022 год не подключена.'
+    st.info(f"Использовано {row.n_before} точек до и {row.n_after} после. База 2019–2021 пересекается с COVID; проверь результат также на базе 2013–2019. {coverage_note} Участники СВО в данных не выделены.")
     columns = {"indicator": "Показатель", "before": "Среднее до", "after": "Среднее после", "change_pct": "Разница, %", "n_before": "Точек до", "n_after": "Точек после", "years_before": "Годы до", "years_after": "Годы после", "unit": "Единица"}
     full_width(st.dataframe, comparison[list(columns)].rename(columns=columns), hide_index=True)
     st.download_button("Скачать сравнение периодов", csv_bytes(comparison), "event_comparison.csv", "text/csv")
@@ -430,7 +442,7 @@ def methodology_page(data, series_map, policy):
         st.download_button("Скачать словарь показателей", csv_bytes(pd.DataFrame(dictionary)), "metric_dictionary.csv", "text/csv")
     with st.expander("Чего не хватает для следующих решений"):
         st.markdown("""
-        - Возрастные среднегодовые знаменатели за 2022–2024: общий ряд населения уже подключён, расчётные значения отмечены.
+        - Возрастные среднегодовые знаменатели за 2022–2024. Наличие общего ряда населения проверяется в разделе населения; расчётные значения отмечены.
         - Муниципалитеты, место обращения, очередь и время ожидания — для оценки территориальной доступности.
         - Штатные вакансии, физические лица и среднегодовые FTE — для кадрового планирования.
         - Месячная динамика и контрольные регионы — для более сильного анализа временных изменений.
@@ -472,10 +484,14 @@ def main():
                 help="Полная таблица population_denominators_2013_2024.csv из нового парсера.")
         st.markdown('<div class="sidebar-signature">С уважением,<br><strong>команда Волны</strong></div>', unsafe_allow_html=True)
     try:
-        content = tuple(file.getvalue() for file in uploads) if uploads else tuple(
-            (ROOT / "data/" / f"form_{number}_all_years_long.csv").read_bytes() for number in [10, 36])
+        paths = medical_inputs(ROOT)
+        if not uploads and not paths:
+            st.info('Загрузи медицинские CSV в блоке «Загрузка данных» внизу меню: общий файл или формы 10 и 36 отдельно.')
+            st.stop()
+        content = tuple(file.getvalue() for file in uploads) if uploads else tuple(path.read_bytes() for path in paths)
         data = prepared_data(content)
-        population = load_population(pop_upload.getvalue() if pop_upload else ROOT / "data/population/population_denominators_2013_2024.csv")
+        population_path = data_root(ROOT) / 'population/population_denominators_2013_2024.csv'
+        population = load_population(pop_upload.getvalue() if pop_upload else population_path) if pop_upload or population_path.is_file() else empty_population()
         regions = set(data.region.str.strip()) - {""}
         if regions != {"Иркутская область"}:
             raise ValueError("Эта версия использует население Иркутской области. Медицинские данные должны относиться к той же территории.")
@@ -513,9 +529,10 @@ def main():
         st.warning("Исследовательский режим: разрешено использование OCR. Требуется сверка исходников.")
     if calculated:
         st.caption("Расчётные среднегодовые знаменатели включены. Метод сохранён в экспортах.")
+    if population.empty:
+        st.info('Население не подключено: доступны абсолютные показатели. Для расчётов на 100 тыс. загрузи таблицу знаменателей внизу меню.')
     if section == "Обзор":
-        overview_rates(data, population, year, policy, calculated, ui)
-        overview(data, series_map, alerts, year, policy, selected_years)
+        narrative_overview(data, population, series_map, alerts, year, policy, selected_years, calculated, threshold, ui)
     elif section == "Заболеваемость и структура":
         incidence_page(data, population, year, policy, selected_years, calculated, ui)
     elif section == "Наблюдение и помощь":
@@ -534,10 +551,13 @@ def main():
     elif section == "Аномалии и качество":
         quality_page(data, series_map, alerts, year, policy)
         with st.expander("Реестр проверки PDF-таблиц"):
-            inventory = pd.read_csv(ROOT / "data/medical/table_inventory_v2.csv", dtype=str, keep_default_na=False)
-            pdf = inventory.loc[inventory.verification_status.eq("pdf_review_required")]
-            full_width(st.dataframe, pdf, hide_index=True)
-            st.download_button("Скачать реестр PDF", csv_bytes(pdf), "pdf_review_register.csv", "text/csv")
+            inventory = optional_csv(ROOT, 'medical/table_inventory_v2.csv')
+            if inventory is not None:
+                pdf = inventory.loc[inventory.verification_status.eq("pdf_review_required")]
+                full_width(st.dataframe, pdf, hide_index=True)
+                st.download_button("Скачать реестр PDF", csv_bytes(pdf), "pdf_review_register.csv", "text/csv")
+            else:
+                st.info('Реестр PDF не передан. Наличие исходных CSV не подтверждает полноту сверки PDF.')
             st.caption("Этот реестр показывает извлечённые таблицы. Полноту нужно подтвердить по всем страницам исходников.")
     else:
         methodology_page(data, series_map, policy)

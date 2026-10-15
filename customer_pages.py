@@ -4,6 +4,11 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from data_access import optional_csv
+from design_tokens import REGION, FORECAST, chart_layout
+from narrative import insight
+from story_view import render_insight
+
 from analytics import CATALOG, cell_value, diagnostic_rows, point
 from indicators import (AGE_LABELS, RESIDENCE_LABELS, SEX_LABELS, TYPE_LABELS,
                         brief_coverage, forecast_series, incidence_series, normalize_series, service_diagnosis_series)
@@ -14,6 +19,7 @@ def show_series(series, year, years, ui, title='Показатель'):
     selected = series.loc[series.year.between(*years)]
     record = point(series, year)
     st.metric(title, ui['fmt'](record.value, 2 if series.unit.iloc[0].startswith('на ') else 0))
+    render_insight(insight(series, year))
     if record.reason:
         st.info(str(record.reason))
     if not selected.empty:
@@ -122,6 +128,8 @@ def resource_additions(series_map, population, year, years, calculated, ui):
 
 def population_page(population, root, year, ui):
     st.subheader('Население: опубликованное и расчётное')
+    if population.empty:
+        st.info('Таблица знаменателей не подключена. Загрузите её в боковом меню или подключите комплект данных.')
     kinds = st.columns(3)
     for col, kind in zip(kinds, TYPE_LABELS):
         rows = population.loc[(population.year == year) & (population.population_type == kind) & (population.sex == 'both') & (population.residence == 'all') & (population.age_group == 'all')]
@@ -133,10 +141,13 @@ def population_page(population, root, year, ui):
     st.info('Возрастные среднегодовые знаменатели 2022–2024 отсутствуют. Не используем население всей области вместо численности детей или подростков.')
     for name, title in [('missing_denominators.csv', 'Недостающие среднегодовые разрезы'), ('municipal_region_comparison.csv', 'Муниципальные суммы и областной ряд'), ('age_mean_method_comparison.csv', 'Сопоставимость опубликованных и расчётных средних')]:
         with st.expander(title):
-            frame = pd.read_csv(root / 'data/population' / name)
-            ui['wide'](st.dataframe, frame, hide_index=True)
-            st.download_button('Скачать таблицу', ui['csv'](frame), name, 'text/csv', key='pop_' + name)
-    st.caption('За 2013–2021 годы муниципальные суммы ниже областного пересчёта на 1 470–6 025 человек. До сверки версий не используем их как единую согласованную сумму.')
+            frame = optional_csv(root, 'population/' + name)
+            if frame is None:
+                st.info('Дополнительная таблица не передана: ' + name)
+            else:
+                ui['wide'](st.dataframe, frame, hide_index=True)
+                st.download_button('Скачать таблицу', ui['csv'](frame), name, 'text/csv', key='pop_' + name)
+    st.caption('Муниципальные суммы и областной ряд нужно сверить по версии источника и охвату территорий перед сравнением.')
     st.download_button('Скачать текущие областные знаменатели', ui['csv'](population), 'population_denominators.csv', 'text/csv')
 
 
@@ -157,10 +168,11 @@ def forecast_page(data, population, policy, years, calculated, ui):
     scores = pd.DataFrame([dict(model=k, MAE=v) for k, v in result['mae'].items()])
     ui['wide'](st.dataframe, scores, hide_index=True)
     figure = go.Figure()
-    figure.add_trace(go.Scatter(x=source.year, y=source.value, mode='lines+markers', name='Факт', connectgaps=False))
+    figure.add_trace(go.Scatter(x=source.year, y=source.value, mode='lines+markers', name='Иркутская область · факт', line=dict(color=REGION), connectgaps=False))
     fc = result['forecast']
     last = source.iloc[-1]
-    figure.add_trace(go.Scatter(x=[int(last.year)] + fc.year.tolist(), y=[last.value] + fc.value.tolist(), mode='lines+markers', line={'dash': 'dash'}, name='Прогноз'))
+    figure.add_trace(go.Scatter(x=[int(last.year)] + fc.year.tolist(), y=[last.value] + fc.value.tolist(), mode='lines+markers', line={'dash': 'dash', 'color': FORECAST}, name='Прогноз · модель'))
+    chart_layout(figure, 400)
     figure.update_layout(xaxis={'dtick': 1}, yaxis_title=source.unit.iloc[0], height=400)
     ui['wide'](st.plotly_chart, figure)
     ui['wide'](st.dataframe, fc, hide_index=True)
@@ -172,11 +184,14 @@ def forecast_page(data, population, policy, years, calculated, ui):
 
 def comparison_page(root, year, ui):
     st.subheader('Готовность территориальных сравнений')
-    st.write('Население муниципальных территорий загружено. Для сравнения заболеваемости нужны медицинские числители по тем же территориям и годам. Для карт дополнительно нужны согласованные коды и границы.')
-    municipal = pd.read_csv(root / 'data/population/population_municipal_long.csv', keep_default_na=False)
-    selected = municipal.loc[(municipal.year == year) & (municipal.population_type == 'annual_average') & (municipal.territory_level == 'municipality')]
-    ui['wide'](st.dataframe, selected[['territory_name', 'year', 'population', 'value_status', 'source_file']], hide_index=True)
-    st.download_button('Скачать население муниципалитетов', ui['csv'](selected), f'municipal_population_{year}.csv', 'text/csv')
+    st.write('Для сравнения заболеваемости нужны население и медицинские числители по тем же территориям и годам. Для карт дополнительно нужны согласованные коды и границы.')
+    municipal = optional_csv(root, 'population/population_municipal_long.csv')
+    if municipal is None:
+        st.info('Муниципальное население не подключено. Медицинские показатели по территориям также нужны отдельно.')
+    else:
+        selected = municipal.loc[(municipal.year == year) & (municipal.population_type == 'annual_average') & (municipal.territory_level == 'municipality')]
+        ui['wide'](st.dataframe, selected[['territory_name', 'year', 'population', 'value_status', 'source_file']], hide_index=True)
+        st.download_button('Скачать население муниципалитетов', ui['csv'](selected), f'municipal_population_{year}.csv', 'text/csv')
     st.info('Показатели России и федеральных округов не загружены. Областные числа не выдаются за федеральные и не копируются на муниципальные территории.')
     st.subheader('Запросы заказчика: что реализовано и что нужно получить')
     coverage = brief_coverage()
