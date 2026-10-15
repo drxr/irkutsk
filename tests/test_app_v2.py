@@ -18,6 +18,9 @@ def test_each_screen(section):
 
 
 def test_calculated_population_and_missing_child_denominator():
+    from data_access import data_root
+    if not (data_root(ROOT) / 'population/population_denominators_2013_2024.csv').is_file():
+        pytest.skip('Население не подключено')
     at = AppTest.from_file(str(ROOT / 'app.py'), default_timeout=40).run()
     at.checkbox(key='allow_calculated_population').check().run()
     assert not at.exception

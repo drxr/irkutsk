@@ -3,6 +3,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY app.py analytics.py indicators.py customer_pages.py update_data.py ./
+COPY narrative.py story_view.py design_tokens.py data_access.py ./
 COPY assets ./assets
 COPY data ./data
 COPY docs ./docs

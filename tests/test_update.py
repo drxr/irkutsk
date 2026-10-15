@@ -11,8 +11,12 @@ def test_population_and_numerator_mismatch():
     from indicators import incidence_series, load_population, normalize_series
     from analytics import load_frames
     import pytest
-    data = load_frames([ROOT / 'data/medical/psychiatry_all_long.csv.gz'])
-    population = load_population(ROOT / 'data/population/population_denominators_2013_2024.csv')
+    from data_access import data_root, medical_inputs
+    data = load_frames(medical_inputs(ROOT))
+    path = data_root(ROOT) / 'population/population_denominators_2013_2024.csv'
+    if not path.is_file():
+        pytest.skip('Население не подключено')
+    population = load_population(path)
     with pytest.raises(ValueError, match='разные разрезы'):
         normalize_series(incidence_series(data, sex='female'), population)
 
