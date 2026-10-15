@@ -1,0 +1,65 @@
+{
+  "description": "Население из проверенного комплекта парсера от 13 октября 2026; значения и происхождение сохранены без изменений.",
+  "files": [
+    {
+      "file": "age_mean_method_comparison.csv",
+      "uncompressed_sha256": "6616056be93c8e3066dfc919afd45217e64a02c58e39473775e0d587fa9a8f6a",
+      "uncompressed_bytes": 8321
+    },
+    {
+      "file": "coverage.csv",
+      "uncompressed_sha256": "d65f6d27f9c43a1f8c9278e063f2b8d425784f69ec26898a87a32f8e41d8e011",
+      "uncompressed_bytes": 1021
+    },
+    {
+      "file": "missing_denominators.csv",
+      "uncompressed_sha256": "8f2f06ead98ac9dc37145ea67c1c66eef4cf032cee4c8bb16e8614de0b6e6501",
+      "uncompressed_bytes": 19212
+    },
+    {
+      "file": "municipal_region_comparison.csv",
+      "uncompressed_sha256": "1baf7db749d7e11caa70a87197703f688b541374226b4efaef628fdfaa46e9b0",
+      "uncompressed_bytes": 783
+    },
+    {
+      "file": "population_denominators_2013_2024.csv.gz",
+      "uncompressed_sha256": "ac389b80d0c638aa924064405ffb19dd1cd84b649f044ae70e57a55082801ccd",
+      "uncompressed_bytes": 11880070
+    },
+    {
+      "file": "population_municipal_long.csv.gz",
+      "uncompressed_sha256": "70c98b5bce6e2387c5e80ed91f3b0778738e786608f5bb509d179171f2bc5a95",
+      "uncompressed_bytes": 811882
+    },
+    {
+      "file": "population_region_totals_2013_2024.csv",
+      "uncompressed_sha256": "c5aefc9458c8b456ccdab507ea769b43a41547b0b3200a039842557484475433",
+      "uncompressed_bytes": 13048
+    },
+    {
+      "file": "published_mean_vs_calculated_checks.csv",
+      "uncompressed_sha256": "55b46bb5ab7e042b8ef1e7e1a61a1a1dc297220fbfa336235d77cefb5e17d784",
+      "uncompressed_bytes": 1102
+    },
+    {
+      "file": "quality_checks.csv",
+      "uncompressed_sha256": "478eb7614d7ff78a12b20ff750d623dd6efa0514d7fbf0ac1193a86082a91d70",
+      "uncompressed_bytes": 1682
+    },
+    {
+      "file": "source_inventory.csv",
+      "uncompressed_sha256": "d8c19d1171c85b7e2a69a1509f41353483a418ac7173945cf4ac9b2dbf768e40",
+      "uncompressed_bytes": 2044
+    },
+    {
+      "file": "source_notes.csv",
+      "uncompressed_sha256": "62facff61c4bd88561da3284768875a04b51dfef0a71d14988760951471d82c0",
+      "uncompressed_bytes": 19574
+    },
+    {
+      "file": "validation.json",
+      "uncompressed_sha256": "79798aabd3ebd55932e365c05d9741abda399cb11be5ca001ed2d94c76a8bf92",
+      "uncompressed_bytes": 511
+    }
+  ]
+}

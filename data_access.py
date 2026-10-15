@@ -35,7 +35,18 @@ def empty_population():
     return frame
 
 
+def population_input(root):
+    """Найти знаменатели: обновлённый CSV имеет приоритет перед сжатым комплектом."""
+    path = data_root(root) / 'population/population_denominators_2013_2024.csv'
+    if path.is_file():
+        return path
+    compressed = path.with_suffix(path.suffix + '.gz')
+    return compressed if compressed.is_file() else None
+
+
 def optional_csv(root, relative):
     """Вернуть дополнительную таблицу или None, если она не передана."""
     path = data_root(root) / relative
+    if not path.is_file():
+        path = path.with_suffix(path.suffix + '.gz')
     return pd.read_csv(path, keep_default_na=False) if path.is_file() else None

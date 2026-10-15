@@ -12,14 +12,16 @@ SECTIONS = ['Обзор', 'Заболеваемость и структура', 
 @pytest.mark.parametrize('section', SECTIONS)
 def test_each_screen(section):
     at = AppTest.from_file(str(ROOT / 'app.py'), default_timeout=40).run()
+    assert not any('Население не подключено' in i.value for i in at.info)
+    assert any('Население подключено' in c.value for c in at.caption)
     assert not at.exception
     at.radio(key='section').set_value(section).run()
     assert not at.exception, [e.message for e in at.exception]
 
 
 def test_calculated_population_and_missing_child_denominator():
-    from data_access import data_root
-    if not (data_root(ROOT) / 'population/population_denominators_2013_2024.csv').is_file():
+    from data_access import population_input
+    if population_input(ROOT) is None:
         pytest.skip('Население не подключено')
     at = AppTest.from_file(str(ROOT / 'app.py'), default_timeout=40).run()
     at.checkbox(key='allow_calculated_population').check().run()
